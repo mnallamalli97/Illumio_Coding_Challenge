@@ -104,10 +104,6 @@ class Firewall(object):
 def main():
    fw = Firewall("test.csv")
 
-   print(fw.main_utility_function("inbound","tcp",80,"192.168.1.2"))
-   print(fw.main_utility_function("inbound", "tcp", 80, "192.168.1.2"))
-   print(fw.main_utility_function("inbound", "udp", 53, "192.168.2.1"))
-   print(fw.main_utility_function("outbound", "tcp", 10234, "192.168.10.11"))
    print(fw.main_utility_function("inbound", "tcp", 81, "192.168.1.2"))
    print(fw.main_utility_function("inbound", "udp", 24, "52.12.48.92"))
 
