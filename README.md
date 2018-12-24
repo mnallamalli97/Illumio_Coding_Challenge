@@ -8,7 +8,7 @@ I tested my solution by running print statements (similar to asserts) on the exa
 Here are a few of the edge cases I was able to think about: 
   1. Empty ranges
   2. Ranges that fall outside of the numerical values accepted
-  3. Duplicate values
+  3. Duplicate values (did not have time to implement)
 
 
 # Any interesting coding, design, or algorithmic choices you’d like to point out
@@ -17,7 +17,7 @@ I used dictionaries in python because they can be accessed in constant O(1) time
 
 # Any refinements or optimizations that you would’ve implemented if you had more time
 1. I would have implemented a map of <dicts, ints> to count the number of like entries to keep count of common incoming ports.
-2. I would optimize the main `main_utility_function` to work in a smaller polynomial time degree than current. It is pretty inefficient and is a naive approach to this problem. Instead would implement a binary tree to check rules in O(nlogn) time.  
+2. I would optimize the main `main_utility_function` to work in a smaller polynomial time degree than current. It is a pretty naive approach to this problem and runs in O(n) time to iterate through the rules. I would try to make the algorithm run in O(1) time. 
 
 
 # My Illumio Role Preference Ranking
