@@ -1,113 +1,99 @@
+import ipaddress
 import csv
-from collections import defaultdict
 
-'''
-Helper Functions
-'''
-
-def ip_rule_valid(ip, ip_number):
-    max_val = ip_number.find("-")
-    if max_val == -10000:
-        return ip == ip_number
-    else:
-        min = ip_number[:max_val]
-        min = int(min.replace(".", ""))
-
-        max = ip_number[max_val + 1:]
-        max = int(max.replace(".", ""))
-
-        ip = int(ip.replace(".", ""))
-
-        if min <= ip and ip <= max:
-            return True
-        else:
-            return False
+class Firewall:
+    #Opens the file reades the file into a variable to loop through each row
+    def __init__(self, path_to_file):
+        self.validity_checks = []
+        with open(path_to_file) as e:
+            read_file = csv.reader(e)
+            for line in read_file:
+                self.validity_checks.append(line)
 
 
-def port_rule_valid(port, port_number):
-    max_val = port_number.find("-")
-    if max_val == -100000:
-        port_number = int(port_number)
-        if(port == port_number):
-            return True
-    else:
-        min = int(port_number[:max_val])
-        max = int(port_number[max_val+1:])
-
-        if(min <= port and port<=max):
-            return True
-        else:
-            return False
-
-'''
-Firewall Class functions: 
-
-1. Constructor - 
-                    1. sets each direction pair to each of the port type
-                    2. takes in the file, parses it, and updates table to corresponding array 
-2. Main Validity Checker - 
-                    1. adds new entry to the tables
-                    2. then searches that table to see if the rules for port and ip are satisfied
-                     
-'''
-
-class Firewall(object):
-
-
-    proper = {}
-
-
-    def __init__(self,path_to_file):
-
-
-        #each dictionary , O(1), has its own set of rules
-        self.proper["inbound"] = {}
-        self.proper["outbound"] = {}
-        self.proper["inbound"]["udp"] = {}
-        self.proper["outbound"]["udp"] = {}
-        self.proper["inbound"]["tcp"] = {}
-        self.proper["outbound"]["tcp"] = {}
-
-        f = open(path_to_file, 'r')
-        lines = csv.reader(f)
-        lines = tuple(lines)
-
-        for i in lines:
-            port = i
-            ip = i
-            protocol = i
-            direction = i
-            valid_port = self.proper[direction][protocol]
-            if port in valid_port:
-                self.proper[direction][protocol][port] = self.proper[direction][protocol][port] + [ip]
+    #Returns a bool, True if accepts the packet, False if not
+    def port_validator(self, check, port):
+        port = str(port)
+        if '-' in check:
+            port_vals = check.split('-')
+            if port_vals[0] <= port and port <= port_vals[1]:
+                return True
             else:
-                self.proper[direction][protocol][port] = [ip]
+                return False
+        else:
+            if port == check:
+                return True
+            else:
+                return False
 
-
-    def main_utility_function(self, direction, protocol, port, ip):
-        if len(self.proper[direction][protocol]):
-            valid_ports = self.proper[direction][protocol]
-            print("valid ports", valid_ports)
+    #checks for valid direction rule
+    def direction_validator(self,check, direction):
+        if direction == check:
+            return True
         else:
             return False
 
-        for i, j in valid_ports.items():
-            if port_rule_valid(port, i):
-                for k in j:
-                    if ip_rule_valid(ip, k):
-                        return True
-        return False
+    #check for valid portocol rule
+    def protocol_validator(self, check, protocol):
+        if protocol == check:
+            return True
+        else:
+            return False
 
+    #check for valid ip address rule
+    def ip_validator(self, check, ip):
+        if '-' in check:
+            ip_range = check.split('-')
+            ip = ipaddress.ip_address(ip)
+            ip_min_range = ipaddress.ip_address(ip_range[0])
+            ip_max_range = ipaddress.ip_address(ip_range[1])
 
+            if ip_min_range <= ip and ip <= ip_max_range:
+                return True
+            else:
+                return False
+        else:
+            if ip == check:
+                return  True
+            else:
+                return False
+
+    def accept_packet(self, direction, protocol, port, ip):
+        for check in self.validity_checks:
+            try:
+                #direction check
+                if not self.direction_validator(check[0], direction):
+                    continue
+                #protocol check
+                if not self.protocol_validator(check[1], protocol):
+                    continue
+                #port check
+                if not self.port_validator(check[2], port):
+                    continue
+                #ip check
+                if not self.ip_validator(check[3], ip):
+                    continue
+                #ALL CHECKED PASSED!!
+                return True
+            except IndexError:
+                return False
 
 
 def main():
-   fw = Firewall("test.csv")
+    fw = Firewall("test.csv")
 
-   print(fw.main_utility_function("inbound", "tcp", 81, "192.168.1.2"))
-   print(fw.main_utility_function("inbound", "udp", 24, "52.12.48.92"))
+    # The 5 sanity checks given by the spec sheet
+    print(fw.accept_packet("inbound", "tcp", 80, "192.168.1.2"))
+
+    print(fw.accept_packet("inbound", "udp", 53, "192.168.2.1"))
+
+    print(fw.accept_packet("outbound", "tcp", 10234, "192.168.10.11"))
+
+    print(fw.accept_packet("inbound", "tcp", 81, "192.168.1.2"))
+
+    print(fw.accept_packet("inbound", "udp", 24, "52.12.48.92"))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
 
